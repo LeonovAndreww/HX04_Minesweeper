@@ -103,16 +103,18 @@ class Sentence():
 
     def known_mines(self):
         if len(self.cells) == self.count: return self.cells;
+        return set()
 
     def known_safes(self):
-        if len(self.cells) == 0: return self.cells;
+        if self.count == 0: return self.cells;
+        return set()
 
     def mark_mine(self, cell):
         self.cells.remove(cell)
         self.count -= 1
 
     def mark_safe(self, cell):
-        self.cells.remove(cell)
+        if cell in self.cells: self.cells.remove(cell)
 
 class MinesweeperAI():
     """
@@ -170,7 +172,46 @@ class MinesweeperAI():
         """
 
         self.moves_made.add(cell)
-        self.safes.add(cell)
+        self.mark_safe(cell)
+
+        if count == 0:
+            if cell[0] + 1 <= self.height - 1:
+                self.mark_safe((cell[0]+1, cell[1]))
+                if cell[1] + 1 <= self.width - 1:
+                    self.mark_safe((cell[0] + 1, cell[1] + 1))
+                if cell[1] - 1 >= 0:
+                    self.mark_safe((cell[0] + 1, cell[1] - 1))
+            if cell[0] - 1 >= 0:
+                self.mark_safe((cell[0] - 1, cell[1]))
+                if cell[1] + 1 <= self.width - 1:
+                    self.mark_safe((cell[0] - 1, cell[1] + 1))
+                if cell[1] - 1 >= 0:
+                    self.mark_safe((cell[0] - 1, cell[1] - 1))
+            if cell[1] + 1 <= self.width - 1:
+                self.mark_safe((cell[0], cell[1] + 1))
+            if cell[1] - 1 >= 0:
+                self.mark_safe((cell[0], cell[1] - 1))
+
+        knowledge_cells = set()
+        if cell[0] + 1 <= self.height - 1:
+            if (cell[0] + 1, cell[1]) not in self.safes: knowledge_cells.add((cell[0] + 1, cell[1]))
+            if cell[1] + 1 <= self.width - 1:
+                if (cell[0] + 1, cell[1] + 1) not in self.safes: knowledge_cells.add((cell[0] + 1, cell[1] + 1))
+            if cell[1] - 1 >= 0:
+                if (cell[0] + 1, cell[1] - 1) not in self.safes: knowledge_cells.add((cell[0] + 1, cell[1] - 1))
+        if cell[0] - 1 >= 0:
+            if (cell[0] - 1, cell[1]) not in self.safes: knowledge_cells.add((cell[0] - 1, cell[1]))
+            if cell[1] + 1 <= self.width - 1:
+                if (cell[0] - 1, cell[1] + 1) not in self.safes: knowledge_cells.add((cell[0] - 1, cell[1] + 1))
+            if cell[1] - 1 >= 0:
+                if (cell[0] - 1, cell[1] - 1) not in self.safes: knowledge_cells.add((cell[0] - 1, cell[1] - 1))
+        if cell[1] + 1 <= self.width - 1:
+            if (cell[0], cell[1] + 1) not in self.safes: knowledge_cells.add((cell[0], cell[1] + 1))
+        if cell[1] - 1 >= 0:
+            if (cell[0], cell[1] - 1) not in self.safes: knowledge_cells.add((cell[0], cell[1] - 1))
+
+        self.knowledge.append(Sentence(knowledge_cells, count))
+
 
     def make_safe_move(self):
         """
@@ -181,7 +222,13 @@ class MinesweeperAI():
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+
+        for i in range(self.height):
+            for j in range(self.width):
+                if (i, j) in self.safes and (i,j) not in self.moves_made:
+                #     print("safes: ", self.safes)
+                #     print("move: ", i, j)
+                    return i, j
 
     def make_random_move(self):
         """
@@ -193,6 +240,6 @@ class MinesweeperAI():
 
         while True:
             move = (random.randint(0, self.height - 1), random.randint(0, self.width - 1))
-            if move in (self.moves_made or self.mines):
+            if move in self.moves_made or move in self.mines:
                 continue
             return move
