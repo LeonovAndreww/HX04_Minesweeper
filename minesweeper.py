@@ -110,8 +110,9 @@ class Sentence():
         return set()
 
     def mark_mine(self, cell):
-        self.cells.remove(cell)
-        self.count -= 1
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         if cell in self.cells: self.cells.remove(cell)
