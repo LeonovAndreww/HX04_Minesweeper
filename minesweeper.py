@@ -211,8 +211,27 @@ class MinesweeperAI():
         if cell[1] - 1 >= 0:
             if (cell[0], cell[1] - 1) not in self.safes: knowledge_cells.add((cell[0], cell[1] - 1))
 
-        self.knowledge.append(Sentence(knowledge_cells, count))
+        sentence = Sentence(knowledge_cells, count)
+        if len(sentence.cells) > 0 and sentence not in self.knowledge:
+            self.knowledge.append(sentence)
 
+        # for knowledge in self.knowledge:
+        #     print(knowledge)
+        print(self.mines)
+        changed = True
+        while changed:
+            changed = False
+            for sentence in self.knowledge:
+                mines = sentence.known_mines().copy()
+                safes = sentence.known_safes().copy()
+                for cell in mines:
+                    if cell not in self.mines:
+                        self.mark_mine(cell)
+                        changed = True
+                for cell in safes:
+                    if cell not in self.safes:
+                        self.mark_safe(cell)
+                        changed = True
 
     def make_safe_move(self):
         """
@@ -227,9 +246,8 @@ class MinesweeperAI():
         for i in range(self.height):
             for j in range(self.width):
                 if (i, j) in self.safes and (i,j) not in self.moves_made:
-                #     print("safes: ", self.safes)
-                #     print("move: ", i, j)
                     return i, j
+        return None
 
     def make_random_move(self):
         """
