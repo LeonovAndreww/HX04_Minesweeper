@@ -217,7 +217,7 @@ class MinesweeperAI():
 
         # for knowledge in self.knowledge:
         #     print(knowledge)
-        print(self.mines)
+        # print(self.now)
         changed = True
         while changed:
             changed = False
@@ -232,6 +232,8 @@ class MinesweeperAI():
                     if cell not in self.safes:
                         self.mark_safe(cell)
                         changed = True
+        for knowledge in self.knowledge:
+            if len(knowledge.cells) == 0: self.knowledge.remove(knowledge)
 
     def make_safe_move(self):
         """
